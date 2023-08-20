@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block notifications_css %}
+<link rel="stylesheet" href="/components/notifications/notifications.css">
+<link rel="stylesheet" href="/components/dashboard/dashboard.css">
+{% endblock %}
+{% block content %}
+<div class="notification-list">
+    <div class="notification-tile">
+        <i class="fas fa-bell notification-icon"></i>
+        <p class="notification-message">Your account was accessed from a new device.</p>
+        <span class="notification-time">2 hours ago</span>
+    </div>
+
+    <div class="notification-tile">
+        <i class="fas fa-bell notification-icon"></i>
+        <p class="notification-message">Your monthly report is ready for review.</p>
+        <span class="notification-time">1 day ago</span>
+    </div>
+    <div class="notification-tile">
+        <i class="fas fa-bell notification-icon"></i>
+        <p class="notification-message">Your Quarterly report is ready for review.</p>
+        <span class="notification-time">5 days ago</span>
+    </div>
+    <div class="notification-tile">
+        <i class="fas fa-bell notification-icon"></i>
+        <p class="notification-message">Your Annual report is ready for review.</p>
+        <span class="notification-time">10 days ago</span>
+    </div>
+    <div class="notification-tile">
+        <i class="fas fa-bell notification-icon"></i>
+        <p class="notification-message">Your 5 years report is ready for review.</p>
+        <span class="notification-time">15 days ago</span>
+    </div>
+
+    <!-- ... More notification tiles can be added similarly ... -->
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+
+
+{% extends "base.html" %}
+{% block notifications_css %}
+<link rel="stylesheet" href="/components/dashboard/dashboard.css">
+{% endblock %}
+{% block content %}
+<div class="main-content">
+
+  <head>
+    <title>Explore the World of Stocks and Supercharge Your Portfolio!</title>
+  </head>
+    <p class="home-heading">Welcome to our investment monitoring platform, where possibilities are endless and opportunities await!</p>
+    
+    <p class="home-heading">Why consider adding stocks to your investment mix? Here are a few reasons:</p>
+    
+    <div class="reasons">
+      <div class="reason">
+        <h2>Broaden Your Horizons</h2>
+        <p>Stocks provide access to a vast array of industries and companies, allowing you to tap into diverse sectors and capitalize on emerging trends. Stay informed about the market and monitor the performance of different stocks to gain valuable insights.</p>
+      </div>
+      <div class="reason">
+        <h2>Growth Potential</h2>
+        <p>Stocks have historically shown the potential for impressive long-term growth. By keeping a close eye on companies with solid fundamentals and promising outlooks, you can stay ahead of the game and identify opportunities for your future investments.</p>
+      </div>
+      <div class="reason">
+        <h2>Wealth Building</h2>
+        <p>Investing in stocks is a proven path to building wealth over time. By understanding the market and tracking your investments, you can make informed decisions that may lead to substantial returns and secure a brighter financial future.</p>
+      </div>
+    </div>
+    
+    <p>Ready to take the leap into the stock market? Although we don't facilitate direct stock purchases, we provide you with the tools and resources you need to monitor your investments effectively. Our user-friendly platform offers real-time market data, personalized portfolio tracking, and comprehensive analytics.</p>
+    
+    <p>Remember, investing in stocks involves risks, but with careful monitoring, research, and a long-term perspective, you can stay on top of your investments and make informed decisions. Start your journey today and embark on an exciting adventure that could lead to financial success.</p>
+    
+    <a class="cta-button" href="{{ url_for('dashboard') }}">Get Started</a>
+  </div>
+ {% endblock %}

@@ -1,0 +1,50 @@
+    {
+        "portfolioOverview": {
+            "totalAUM": 10000000,
+            "totalCustomers": 50,
+            "portfolioValue": 10500000
+        },
+        "individualCustomerPerformance": [
+            {
+                "customerId": "CUST001",
+                "currentBalance": 200000,
+                "investmentGrowth": 0.10,
+                "returns": 0.08
+            },
+            {
+                "customerId": "CUST002",
+                "currentBalance": 300000,
+                "investmentGrowth": 0.15,
+                "returns": 0.12
+            }
+        ],
+        "investmentAllocation": {
+            "equities": 0.60,
+            "bonds": 0.25,
+            "alternativeInvestments": 0.15
+        },
+        "riskMetrics": {
+            "portfolioVolatility": 0.12,
+            "beta": 1.25,
+            "standardDeviation": 0.18
+        },
+        "returnMetrics": {
+            "totalReturn": 0.07,
+            "annualizedReturn": 0.09,
+            "benchmarkReturn": 0.06
+        },
+        "accountActivity": [
+            {
+                "transactionType": "Buy",
+                "asset": "AAPL",
+                "amount": 5000,
+                "date": "2023-08-15"
+            },
+            {
+                "transactionType": "Sell",
+                "asset": "GOOGL",
+                "amount": 3000,
+                "date": "2023-08-10"
+            }
+        ]
+    }

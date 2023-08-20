@@ -1,0 +1,379 @@
+{% if not no_base %}
+    {% extends "base.html" %}
+{% endif %}
+{% block dashboard_css %}
+<link rel="stylesheet" href="/components/dashboard/dashboard.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+{% endblock %}
+{% block content %}
+
+<body>
+    <!-- Main content -->
+
+    <div class="main-content">
+        <div class="add-stock-btn-container">
+            {% if user_info['isFundManager'] == True %}
+            <button id="addStockBtn"><i class="fas fa-plus"></i> Add Stock Entry</button>
+            {% endif %}
+        </div>
+        <div class="dashboard grid-container">
+            <!-- Row 1 -->
+
+            <div class="table-container tile extra-large">
+                <table id="myTable">
+                    <thead>
+                        <tr>
+                            <th>Stock Symbol</th>
+                            <th>Exchange</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Entry Date</th>
+                            <th>Total Invested</th>
+                            <th>Current Total</th>
+                            <th>Days Change (%)</th>
+                            {% if user_info['isFundManager'] == True %}
+                            <th>Actions</th>
+                            {% endif %}
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stock in stock_table_data.stocks %}
+                        <tr>
+                            <td>{{ stock.symbol }}</td>
+                            <td>{{ stock.exchange }}</td>
+                            <td>{{ stock.price }}</td>
+                            <td>{{ stock.quantity }}</td>
+                            <td>{{ stock.entryDate }}</td>
+                            <td>{{ stock.totalInvested }}</td>
+                            <td>{{ "\u20B9%.2f" % (stock.currentTotal) }} ({{ "%.2f" % (((stock.currentTotal -
+                                stock.totalInvested) / stock.totalInvested) * 100) }}%)</td>
+                            <td>{{ stock.daysChangePercentage }}</td>
+                            {% if user_info['isFundManager'] == True %}
+                            <td>
+                                <i class="fas fa-edit" title="Edit"></i>
+                                <i class="fas fa-trash-alt" title="Delete" style="margin-left: 10px;"></i>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <!-- ... Your table content ... -->
+            </div>
+            {% for investment, value in portfolio.items() %}
+            <div class="basic-tiles tile small" id="{{investment.lower().replace(' ', '')}}">
+                <h2>{{ investment }}</h2>
+                <div>{{ value }}</div>
+            </div>
+            {% endfor %}
+            <!-- Row 2 -->
+            <div class="chart-tile tile large">
+                <div class="chart-container">
+                    <canvas id="myPieChart1" width="200" height="200"></canvas>
+                </div>
+                <div class="vertical-line"></div>
+                <div class="chart-container">
+                    <canvas id="myPieChart2" width="200" height="200"></canvas>
+                </div>
+                <!-- ... Your chart tile content ... -->
+            </div>
+            <div class="main-tile small">
+                <div class="stock-tile">
+                    <span class="gainers-header">Top Gainers</span>
+                    <div class="stock">TCS <span class="change positive">+2.3%</span></div>
+                    <div class="stock">Reliance <span class="change positive">+1.7%</span></div>
+                    <div class="stock">Infosys <span class="change positive">+1.1%</span></div>
+                </div>
+                <div class="stock-tile">
+                    <span class="losers-header">Top Losers</span>
+                    <div class="stock">HDFC <span class="change negative">-1.5%</span></div>
+                    <div class="stock">XYZ Corp <span class="change negative">-2.0%</span></div>
+                    <div class="stock">ABC Ltd <span class="change negative">-2.5%</span></div>
+                </div>
+            </div>
+
+            <div class="bar-chart tile medium">
+                <canvas id="myBarChart" width="400" height="200"></canvas>
+            </div>
+
+            <div class="line-chart tile medium">
+                <canvas id="myLineChart" width="400" height="200"></canvas>
+            </div>
+
+            <div class="notification-summary-tile tile small">
+                <div class="ticker-content">
+                    <div class="notification-tile">
+                        <i class="fas fa-bell notification-icon"></i>
+                        <p class="notification-message">Your account was accessed from a new device</p>
+                    </div>
+                    <div class="notification-tile">
+                        <i class="fas fa-bell notification-icon"></i>
+                        <p class="notification-message">Your monthly report is ready for review.</p>
+                    </div>
+                    <div class="notification-tile">
+                        <i class="fas fa-bell notification-icon"></i>
+                        <p class="notification-message">Your Quarterly report is ready for review.</p>
+                    </div>
+                    <div class="notification-tile">
+                        <i class="fas fa-bell notification-icon"></i>
+                        <p class="notification-message">Your Annual report is ready for review.</p>
+                    </div>
+                    <div class="notification-tile">
+                        <i class="fas fa-bell notification-icon"></i>
+                        <p class="notification-message">Your 5 years report is ready for review.</p>
+                    </div>
+                    <!-- More notification tiles can be added here -->
+                </div>
+            </div>
+
+           
+
+            <!-- Row 3 -->
+            <!-- Since I don't have the exact number of investments, I'll just use placeholders -->
+
+        </div>
+    </div>
+
+    <script>
+        window.onload = function () {
+            var nav = document.querySelector('.nav');
+            if (window.innerWidth <= 1366) {
+                if (nav.style.transform === '' || nav.style.transform === 'translateY(0px)') {
+                    nav.style.transform = 'translateY(-' + (nav.offsetHeight) + 'px)'; // set the transform value based on the navigation's height
+                    nav.style.display = 'none';
+                }
+            }
+        }
+        document.querySelector('.hamburger').addEventListener('click', function () {
+            var nav = document.querySelector('.nav');
+            if (nav.style.transform === '' || nav.style.transform === 'translateY(0px)') {
+                nav.style.transform = 'translateY(-' + (nav.offsetHeight) + 'px)'; // set the transform value based on the navigation's height
+                nav.style.display = 'none';
+            } else {
+                nav.style.transform = 'translateY(0px)';
+                nav.style.display = 'block'
+            }
+        });
+        document.getElementById('addStockBtn')?.addEventListener('click', function () {
+            // Example: alert the user
+            alert('Add stock entry functionality is not implemented yet.');
+            // Here, you can add your logic to show a modal or navigate to a different page, etc.
+        });
+
+        document.querySelector('.notification-summary-tile').addEventListener('click', function () {
+            window.location.href = "/notifications"; // This assumes your notifications page is identified by the "notifications" id
+        });
+        const wrapper = document.querySelector('.scrolling-notifications');
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            let wrapper = document.querySelector('.ticker-content'); // Make sure this selector targets the right element
+
+            // Check if wrapper exists to avoid null errors
+            if (wrapper) {
+                function scrollNotifications() {
+                    let topPosition = wrapper.offsetTop;
+
+                    if (Math.abs(topPosition) > wrapper.offsetHeight) {
+                        topPosition = window.innerHeight;
+                    }
+
+                    wrapper.style.top = (topPosition - 1) + 'px';
+                    requestAnimationFrame(scrollNotifications);
+                }
+
+                scrollNotifications(); // Call the function
+            } else {
+                console.error("Element with class 'ticker-content' not found.");
+            }
+        });
+
+        var ctx = document.getElementById('myPieChart1').getContext('2d');
+        var ctx2 = document.getElementById('myPieChart2').getContext('2d');
+
+        var sector_allocation_data = {{ sector_data| tojson | safe }}
+        var mcap_allocation_data = {{ market_cap_data| tojson | safe }}
+        const sectors = sector_allocation_data.pieChartData.map(entry => entry.sector)
+        const values = sector_allocation_data.pieChartData.map(entry => entry.value)
+        const stockNames = mcap_allocation_data.pieChartData.map(entry => entry.stockName)
+        const mcap = mcap_allocation_data.pieChartData.map(entry => entry.value)
+        function getRandomPastelColor() {
+            const red = Math.floor(Math.random() * 128) + 127;
+            const green = Math.floor(Math.random() * 128) + 127;
+            const blue = Math.floor(Math.random() * 128) + 127;
+            return `#${red.toString(16)}${green.toString(16)}${blue.toString(16)}`;
+        }
+
+        const colors_chart = Array(20).fill().map(() => getRandomPastelColor());
+        const colors_chart1 = Array(20).fill().map(() => getRandomPastelColor());
+        var myPieChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sectors,// Categories of your pie
+                datasets: [{
+                    data: values,// Values for each category
+                    backgroundColor: colors_chart,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        reverse: true, // This will plot data from right to left
+                        beginAtZero: true,
+                        ticks: {
+                            display: false// Hides the numerical x-axis labels
+                        }
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false,// Hides the legend
+                        text: 'Sector Allocation'
+                    },
+                    title: {
+                        display: true,
+                        text: 'SectorAllocation'
+                    },
+                    datalabels: {
+                        color: '#000',
+                        anchor: 'end',
+                        align: 'start',
+                        offset: -10,
+                        font: {
+                            weight: 'bold'
+                        },
+                        formatter: function (value, context) {
+                            return value;// Returns the value to be displayed inside the bar
+                        }
+                    }
+                },
+            }
+        });
+
+        var myPieChart2 = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: stockNames,// Categories of your pie
+                datasets: [{
+                    data: mcap,// Values for each category
+                    backgroundColor: colors_chart1,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 8
+                            }
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'MarketCap'
+                    }
+                }
+            },
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var ctx = document.getElementById('myLineChart').getContext('2d');
+            let investmentDates = {{ investment_dates| tojson
+        }};
+        let investmentValues = {{ investment_values| tojson }};
+        let indexValues = {{ index_values| tojson }};
+
+        var myAreaChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8', 'Week 9', 'Week 10'],
+                datasets: [{
+                    label: 'Investment Value',
+                    data: [1.2, 2.4, 2.2, 1.6, 0.2, -1.2, -2.5, 1.5, 3.5, 2.8],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)', // The fill color under the line
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    tension: 0.4,
+                    fill: true // This ensures the area below the line is filled
+                }, {
+                    label: 'NIFTY50 Index',
+                    data: [1.1, 2.0, 1.2, 0.8, 0.2, -1.8, -0.8, 1.6, 1.3, 1.8],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            let stockNames = {{ allocation_percentage_data| map(attribute = '0') | list | tojson
+        }};
+        let percentages = {{ allocation_percentage_data| map(attribute = '1') | list | tojson }};
+        const ctx = document.getElementById('myBarChart').getContext('2d');
+        function getRandomPastelColor() {
+            const red = Math.floor(Math.random() * 128) + 127;
+            const green = Math.floor(Math.random() * 128) + 127;
+            const blue = Math.floor(Math.random() * 128) + 127;
+            return `#${red.toString(16)}${green.toString(16)}${blue.toString(16)}`;
+        }
+
+        const colors = Array(20).fill().map(() => getRandomPastelColor());
+        const myBarChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: stockNames,
+                datasets: [{
+                    data: percentages,
+                    backgroundColor: colors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    title: {
+                        display: true,
+                        text: 'Stock allocation'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        });
+        $(document).ready(function () {
+            $('#myTable').DataTable({
+                pageLength: 50,// Display 50 rows per page
+                order: [[0, 'asc'], [1, 'desc']]
+            });
+        });
+    </script>
+</body>
+{% endblock %}

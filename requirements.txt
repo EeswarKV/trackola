@@ -1,0 +1,3 @@
+Authlib
+python-dotenv
+requests

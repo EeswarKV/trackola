@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block dashboard_css %}
+<link rel="stylesheet" href="/components/dashboard/dashboard.css">
+<link rel="stylesheet" href="/components/dashboard/fund-manager-dashboard/dashboard.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+{% endblock %}
+{% block content %}
+
+<body>
+    <div class="main-content">
+        <h2>Portfolio Overview</h2>
+        <div class="dashboard grid-container">
+            {% for investment, value in portfolio.items() %}
+            <div class="basic-tiles tile small" id="{{investment.lower().replace(' ', '')}}">
+                <h2>{{ investment }}</h2>
+                <div>{{ value }}</div>
+            </div>
+            {% endfor %}
+
+            <div class="table-container tile extra-large">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer ID</th>
+                            <th>Current Balance</th>
+                            <th>Investment Growth</th>
+                            <th>Returns</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in data.individualCustomerPerformance %}
+                        <tr>
+                            <td>{{ customer.customerId }}</td>
+                            <td>{{ customer.currentBalance }}</td>
+                            <td>{{ customer.investmentGrowth }}</td>
+                            <td>{{ customer.returns }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="chart-tile tile small fm-dash">
+                <div class="chart-container">
+                    <canvas id="investmentAllocationChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <script>
+            // Investment Allocation Chart
+            const investmentAllocationData = {
+                labels: ['Equities', 'Bonds', 'Alternative Investments'],
+                datasets: [{
+                    data: [40, 30, 30], // Replace with actual allocation percentages
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                }]
+            };
+
+            const investmentAllocationChart = new Chart(document.getElementById('investmentAllocationChart'), {
+                type: 'doughnut',
+                data: investmentAllocationData,
+                options: {
+                    responsive: true,
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            });
+        </script>
+</body>
+{% endblock %}
