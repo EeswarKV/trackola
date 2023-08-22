@@ -7,13 +7,18 @@ from flask_sqlalchemy import SQLAlchemy
 import requests
 import pandas as pd
 from functools import wraps
-from portfolio_builder.components.dashboard.dashboard import build_pie_chart_data, build_market_cap_chart_data, build_stock_allocation_percentage_data
+from src.components.dashboard.dashboard import build_pie_chart_data, build_market_cap_chart_data, build_stock_allocation_percentage_data
 from urllib.parse import quote_plus, urlencode
 from dotenv import find_dotenv, load_dotenv
 from authlib.integrations.flask_client import OAuth
 from os import environ as env
 from authlib.integrations.flask_oauth2 import ResourceProtector
 import ssl
+# from components.generic.scripts import start_or_reset_background_refresh
+import time
+import os
+
+
 ssl._create_default_https_context = ssl._create_unverified_context
 
 app = Flask(__name__, template_folder='components',
@@ -150,12 +155,30 @@ def logout():
         print(f"Error trying to logout: {e}")
         return None
 
+def get_current_time():
+    return int(time.time())
 
+def getToken():
+    url = "https://dev-d6pchdbvs0cq84vq.us.auth0.com/oauth/token"
+    data = {'grant_type': 'client_credentials','client_id':os.getenv('AUTH0_CLIENT_ID'), 'client_secret':os.getenv('AUTH0_CLIENT_SECRET'),'audience':os.getenv('AUTH0_AUDIANCE')}
+    r = requests.post(url, data=data)
+    token = r.json()['access_token']
+    session['token'] = token
+    session['token_expiry'] = get_current_time() + 30*60  # 30 minutes from now
+    login_details = oauth.auth0.authorize_access_token()
+    values = login_details['userinfo']['sub']
+    return token, values
+
+    # Start or reset the background job for refreshing the token
+    # start_or_reset_background_refresh()
 
 @app.route('/home')
 def home():
+    token, values = getToken()
+    headers = {"Authorization": f"Bearer {token}", "user":f"{values}"}
     user_info = requests.get(
-        'http://localhost:5001/api/user_info').json()
+        'http://localhost:8000/general_setting', headers=headers).json()
+    print("user_infouser_info",user_info)
     return render_template('home/home.html', active_page='home',user_info=user_info)
 
 
