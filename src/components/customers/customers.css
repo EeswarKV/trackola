@@ -241,3 +241,7 @@ input {
 .clickable-tile {
     cursor: pointer;
 }
+
+.tile-display{
+    display: flex;
+}

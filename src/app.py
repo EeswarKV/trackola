@@ -14,9 +14,11 @@ from authlib.integrations.flask_client import OAuth
 from os import environ as env
 from authlib.integrations.flask_oauth2 import ResourceProtector
 import ssl
-# from components.generic.scripts import start_or_reset_background_refresh
+from src.components.generic.scripts import start_or_reset_background_refresh
+from services.singleton import Singleton
 import time
 import os
+import json
 
 
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -35,6 +37,7 @@ if ENV_FILE:
 app.secret_key = env.get("APP_SECRET_KEY")
 
 oauth = OAuth(app)
+singleton = Singleton()
 
 oauth.register(
     "auth0",
@@ -106,8 +109,7 @@ def login():
     except Exception as e:
         print(f"Error trying to login: {e}")
         return None
-
-
+    
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
@@ -138,19 +140,22 @@ def register():
 @app.route('/logout')
 def logout():
     try:
+        headers = {"Authorization": f"Bearer {singleton.token}", "user":f"{singleton.values}"}
         session.clear()
-        return redirect(
-            "https://"
-            + env.get("AUTH0_DOMAIN")
-            + "/v2/logout?"
-            + urlencode(
-                {
-                    "returnTo": url_for("login", _external=True),
-                    "client_id": env.get("AUTH0_CLIENT_ID"),
-                },
-                quote_via=quote_plus,
-            )
-        )
+        requests.get(
+        'http://localhost:8000/logout', headers=headers)
+        # return redirect(
+        #     "https://"
+        #     + env.get("AUTH0_DOMAIN")
+        #     + "/v2/logout?"
+        #     + urlencode(
+        #         {
+        #             "returnTo": url_for("login", _external=True),
+        #             "client_id": env.get("AUTH0_CLIENT_ID"),
+        #         },
+        #         quote_via=quote_plus,
+        #     )
+        # )
     except Exception as e:
         print(f"Error trying to logout: {e}")
         return None
@@ -163,22 +168,24 @@ def getToken():
     data = {'grant_type': 'client_credentials','client_id':os.getenv('AUTH0_CLIENT_ID'), 'client_secret':os.getenv('AUTH0_CLIENT_SECRET'),'audience':os.getenv('AUTH0_AUDIANCE')}
     r = requests.post(url, data=data)
     token = r.json()['access_token']
+    singleton.token = token
     session['token'] = token
-    session['token_expiry'] = get_current_time() + 30*60  # 30 minutes from now
+    start_or_reset_background_refresh()
     login_details = oauth.auth0.authorize_access_token()
     values = login_details['userinfo']['sub']
-    return token, values
-
-    # Start or reset the background job for refreshing the token
-    # start_or_reset_background_refresh()
+    session['values'] = values
+    singleton.values = values
+    
 
 @app.route('/home')
 def home():
-    token, values = getToken()
-    headers = {"Authorization": f"Bearer {token}", "user":f"{values}"}
+    getToken()
+    headers = {"Authorization": f"Bearer {singleton.token}", "user":f"{singleton.values}"}
     user_info = requests.get(
         'http://localhost:8000/general_setting', headers=headers).json()
+    singleton.userId = user_info['id']
     print("user_infouser_info",user_info)
+    singleton.data = {"userInfo": user_info}
     return render_template('home/home.html', active_page='home',user_info=user_info)
 
 
@@ -231,9 +238,42 @@ def dashboard():
     }
     return render_template('dashboard/dashboard.html', portfolio=portfolio, active_page='dashboard', stock_table_data=stock_table_data, sector_data=sector_data, market_cap_data=market_cap_data, allocation_percentage_data=allocation_percentage_data, investment_dates=investment_dates, investment_values=investment_values, index_values=index_values,user_info=user_info)
 
+@app.route('/create_customer', methods=['POST'])
+def create_customer():
+    headers = {"Authorization": f"Bearer {singleton.token}", "user": f"{singleton.userId}",  'Content-Type': 'application/json',
+        'Accept': 'application/json'}
+    customer_name = request.form.get('customerName')
+    customer_email = request.form.get('customerEmail')
+    age = request.form.get('age')
+    phone = request.form.get('phone')
+    payload = {
+    "name": customer_name,
+    "email": customer_email,
+    "age": age,
+    "phone_number": phone,
+    "family_name": customer_name,
+    "given_name": customer_name,
+    "nickname": customer_name,
+    "username": customer_name,
+    "password": "Customer1&",
+    }
+    print("data to pass", payload)
+    print("headers to pass", headers)
+
+    # Convert the data to JSON
+    json_data = json.dumps(payload)
+    print("data to pass", json_data)
+
+    response = requests.post(
+    'http://localhost:8000/create_customer', headers=headers, data=json_data)
+    return redirect(url_for('customers'))
 
 @app.route('/customers')
 def customers():
+    headers = {"Authorization": f"Bearer {singleton.token}", "user":f"{singleton.userId}"}
+    user_data = requests.get(
+        'http://localhost:8000/customers', headers=headers).json()
+    print("user_data",user_data)
     user_info = requests.get(
         'http://localhost:5001/api/user_info').json()
     stock_table_data = requests.get(
@@ -269,7 +309,7 @@ def customers():
         'Rate of return': stock_table_data["summary"]["totalPL"],
         'Total Funds Available': 80000,
     }
-    return render_template('customers/customers.html', portfolio=portfolio, active_page='customers', stock_table_data=stock_table_data, sector_data=sector_data, market_cap_data=market_cap_data, allocation_percentage_data=allocation_percentage_data, investment_dates=investment_dates, investment_values=investment_values, index_values=index_values,user_info=user_info)
+    return render_template('customers/customers.html', portfolio=portfolio, active_page='customers', stock_table_data=stock_table_data, sector_data=sector_data, market_cap_data=market_cap_data, allocation_percentage_data=allocation_percentage_data, investment_dates=investment_dates, investment_values=investment_values, index_values=index_values,user_info=user_info,user_data=user_data)
 
 
 @app.route('/notifications')
@@ -278,6 +318,19 @@ def notifications():
         'http://localhost:5001/api/user_info').json()
     return render_template('notifications/notifications.html', active_page='notifications',user_info=user_info)
 
+
+@app.route('/update_profile', methods=['POST'])
+def update_profile():
+    # Get the form data
+    username = request.form.get('username')
+    email = request.form.get('email')
+    phone = request.form.get('phone')
+
+    # Perform update actions here, such as updating user profile data
+    # Example: Update the user's profile data in the database
+
+    # Redirect back to the profile settings page after updating
+    return redirect(url_for('profile-settings/profile_settings'))
 
 if __name__ == '__main__':
     app.run(port=5000)
