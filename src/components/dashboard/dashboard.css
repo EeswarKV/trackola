@@ -771,3 +771,60 @@ table.dataTable thead .sorting::after {
     content: "\f0dc"; /* FontAwesome arrows icon */
     font-family: 'Font Awesome 5 Free'; /* Adjust based on your FontAwesome version */
 }
+
+
+.profile-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-dropdown .profile-settings {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-top: none;
+    min-width: 150px;
+    z-index: 1;
+    display: none;
+}
+
+.dropdown-content .profile-info {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.profile-picture {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.dropdown-content span {
+    font-size: 14px;
+}
+
+.logout-button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    text-align: left;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    color: #333;
+}
+
+.profile-dropdown:hover .dropdown-content {
+    display: block;
+}

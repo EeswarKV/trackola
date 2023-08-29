@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,11 +11,12 @@
     {% block customers_css %}{% endblock %}
     {% block notifications_css %}{% endblock %}
 </head>
-<body>
-      <!-- Hamburger Menu -->
-      <button class="hamburger">&#9776;</button>
 
-      <div class="header-desktop">
+<body>
+    <!-- Hamburger Menu -->
+    <button class="hamburger">&#9776;</button>
+
+    <div class="header-desktop">
         <button class="back-button" id="backButton"><i class="fas fa-arrow-left"></i></button>
         <!-- {% if from_tile %}
             Modify the back button to take into account the from_tile variable
@@ -23,38 +25,47 @@
             Regular back button behavior
             <button class="back-button" id="backButton" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
         {% endif %}-->
-          <div class="right-section">
-              <div class="customer-name">
-                  John Doe
-              </div>
-              <div class="profile-settings">
-                  <i class="fas fa-user-cog"></i> <!-- Profile settings icon -->
-              </div>
-          </div>
-      </div>
-  
-      <!-- Left navigation -->
-      <div class="nav">
-          <div class="logo-section">
-              <img src="/components/header/assets/images/profile.png" alt="Company Logo" class="logo">
-          </div>
-  
-          <div class="nav-links">
-              <a href="/home" class="{{ 'active' if active_page == 'home' else '' }}">Home</a>
-              <a href="/dashboard" class="{{ 'active' if active_page == 'dashboard' else '' }}">Dashboard</a>
-              {% if user_info['isFundManager'] == True %}
-              <a href="/customers" class="{{ 'active' if active_page == 'customers' else '' }}">Customers</a>
-              {% endif %}
-              <a href="/notifications" class="{{ 'active' if active_page == 'notifications' else '' }}">Notifications</a>
-          </div>
-      
-          <!-- Profile Section -->
-          <div class="profile-section">
-              <img src="/components/header/assets/images/profile1.jpeg" alt="Profile Picture" class="profile-picture">
-              <span>Koushik Mohan</span>
-          </div>
-      </div>
-    
+        <div class="right-section">
+            <div class="customer-name">
+                John Doe
+            </div>
+            <div class="profile-dropdown">
+                <button class="profile-settings"><i class="fas fa-user-cog"></i></button>
+                <div class="dropdown-content">
+                    <div class="profile-info">
+                        <a href="/profile_settings" class="profile-settings-link"><i class="fas fa-user-cog"></i></a>
+                        <span>Koushik Mohan</span>
+                    </div>
+                    <form id="logout-form" action="/logout" method="post">
+                        <button type="submit" class="logout-button">Logout</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Left navigation -->
+    <div class="nav">
+        <div class="logo-section">
+            <img src="/components/header/assets/images/profile.png" alt="Company Logo" class="logo">
+        </div>
+
+        <div class="nav-links">
+            <a href="/home" class="{{ 'active' if active_page == 'home' else '' }}">Home</a>
+            <a href="/dashboard" class="{{ 'active' if active_page == 'dashboard' else '' }}">Dashboard</a>
+            {% if user_info['isFundManager'] == True %}
+            <a href="/customers" class="{{ 'active' if active_page == 'customers' else '' }}">Customers</a>
+            {% endif %}
+            <a href="/notifications" class="{{ 'active' if active_page == 'notifications' else '' }}">Notifications</a>
+        </div>
+
+        <!-- Profile Section -->
+        <div class="profile-section">
+            <img src="/components/header/assets/images/profile1.jpeg" alt="Profile Picture" class="profile-picture">
+            <span>Koushik Mohan</span>
+        </div>
+    </div>
+
     {% block content %}
     {% endblock %}
     <script>
@@ -63,7 +74,7 @@
         }
         function goBackTo(tile) {
             // Handle the redirection based on the tile value
-            if(tile === "customer") {
+            if (tile === "customer") {
                 window.location.href = "/dashboard";
             } else {
                 window.location.href = "/home";
@@ -71,4 +82,5 @@
         }
     </script>
 </body>
+
 </html>

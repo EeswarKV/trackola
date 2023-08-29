@@ -10,7 +10,7 @@
 
 <div id="dashboard-container" style="display: none;">
     {% with no_base=true %}
-        {% include 'dashboard/dashboard.html' %}
+    {% include 'dashboard/dashboard.html' %}
     {% endwith %}
 </div>
 <div class="main-content" id="customers-list">
@@ -24,25 +24,27 @@
     <div class="customer-container">
         <p>No customers at the moment</p>
     </div>
+    <div class="tile-display">
+        {% for customer in user_data %}
+        <div class="customer-tile clickable-tile">
+            <div class="customer-info static">
+                <h3 class="customer-name">{{ customer.name }}</h3>
+                <p class="customer-email">{{ customer.email }}</p>
+                <p class="customer-phone">{{ customer.phone_number }}</p>
+            </div>
+            <!-- Editable Content (Hidden by default) -->
+            <div class="customer-info editable" style="display: none;">
+                <input type="text" class="edit-name" value="{{ customer.name }}">
+                <input type="email" class="edit-email" value="{{ customer.email }}">
+                <input type="tel" class="edit-phone" value="{{ customer.phone }}">
+            </div>
 
-    <div class="customer-tile clickable-tile" id="customer1">
-        <div class="customer-info static">
-            <h3 class="customer-name">John Doe</h3>
-            <p class="customer-email">john.doe@email.com</p>
-            <p class="customer-phone">+123 456 789</p>
+            <div class="customer-header">
+                <i class="fas fa-edit edit-btn" title="Edit"></i>
+                <i class="fas fa-trash-alt" title="Delete" style="margin-left: 10px;"></i>
+            </div>
         </div>
-
-        <!-- Editable Content (Hidden by default) -->
-        <div class="customer-info editable" style="display: none;">
-            <input type="text" class="edit-name" value="John Doe">
-            <input type="email" class="edit-email" value="john.doe@email.com">
-            <input type="tel" class="edit-phone" value="+123 456 789">
-        </div>
-
-        <div class="customer-header">
-            <i class="fas fa-edit edit-btn" title="Edit"></i>
-            <i class="fas fa-trash-alt" title="Delete" style="margin-left: 10px;"></i>
-        </div>
+        {% endfor %}
     </div>
 
     <div id="customerModal" class="modal">
@@ -52,7 +54,7 @@
                 <h2>Add Customer Details</h2>
             </div>
             <div class="modal-body">
-                <form id="customerForm">
+                <form id="customerForm" method="post" action="/create_customer">
                     <div class="input-container">
                         <label for="customerName">Name:</label>
                         <input type="text" id="customerName" name="customerName" placeholder="John Doe">
@@ -63,10 +65,18 @@
                         <input type="email" id="customerEmail" name="customerEmail" placeholder="john.doe@example.com">
                     </div>
 
-                    <!-- Add other fields similarly -->
+                    <div class="input-container">
+                        <label for="customerAge">Age:</label>
+                        <input type="text" id="customerAge" name="age" placeholder="28">
+                    </div>
+
+                    <div class="input-container">
+                        <label for="customerPhone">Phone:</label>
+                        <input type="text" id="customerPhone" name="phone" placeholder="+91 9123456789">
+                    </div>
 
                     <div class="button-container">
-                        <button type="button" class="btn" id="saveButton">Save</button>
+                        <button type="submit" class="btn" id="saveButton">Save</button>
                         <button type="button" class="btn" id="cancelButton">Cancel</button>
                     </div>
                 </form>
@@ -75,94 +85,7 @@
     </div>
 
     <script>
-        // Get the modal
-        var modal = document.getElementById('customerModal');
-
-        // Get the button that opens the modal
-        var btn = document.getElementById("openModalButton");
-
-        // Get the <span> element that closes the modal
-        var span = document.getElementsByClassName("close")[0];
-
-        // When the user clicks the button, open the modal
-        btn.onclick = function () {
-            modal.style.display = "block";
-        }
-
-        // When the user clicks on <span> (x), close the modal
-        span.onclick = function () {
-            modal.style.display = "none";
-        }
-
-        // Get the elements that close the modal
-        var cancelButton = document.getElementById("cancelButton");
-        var saveButton = document.getElementById("saveButton");
-
-        // When the user clicks on the "Cancel" button, close the modal
-        cancelButton.onclick = function () {
-            modal.style.display = "none";
-        }
-
-        // When the user clicks anywhere outside of the modal, close it
-        window.onclick = function (event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
-
-        // Handle the "Save" button action as needed
-        saveButton.onclick = function () {
-            alert("saved")
-        }
-
-        document.querySelector('.edit-btn').addEventListener('click', function () {
-            var parentTile = this.closest('.customer-tile');
-            var staticInfo = parentTile.querySelector('.static');
-            var editableInfo = parentTile.querySelector('.editable');
-
-            // Hide the static info and display the editable fields
-            staticInfo.style.display = 'none';
-            editableInfo.style.display = 'block';
-
-            // Change the edit icon to a save icon
-            this.classList.remove('fa-edit');
-            this.classList.add('fa-save');
-            this.title = 'Save';
-
-            // On save click, update the static info and switch back
-            this.onclick = function () {
-                var editedName = parentTile.querySelector('.edit-name').value;
-                var editedEmail = parentTile.querySelector('.edit-email').value;
-                var editedPhone = parentTile.querySelector('.edit-phone').value;
-
-                parentTile.querySelector('.customer-name').innerText = editedName;
-                parentTile.querySelector('.customer-email').innerText = editedEmail;
-                parentTile.querySelector('.customer-phone').innerText = editedPhone;
-
-                // Toggle displays
-                staticInfo.style.display = 'block';
-                editableInfo.style.display = 'none';
-
-                // Change the save icon back to an edit icon
-                this.classList.remove('fa-save');
-                this.classList.add('fa-edit');
-                this.title = 'Edit';
-                this.onclick = null; // Clear the save click event
-            };
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            var deleteIcons = document.querySelectorAll('.fa-trash-alt');
-            deleteIcons.forEach(function (icon) {
-                icon.addEventListener('click', function () {
-                    var tile = icon.closest('.customer-tile');
-                    if (tile) {
-                        tile.parentNode.removeChild(tile);
-                    }
-                });
-            });
-        });
-
+        // Tile click event
         document.addEventListener('DOMContentLoaded', function () {
             var tiles = document.querySelectorAll('.clickable-tile');
 
@@ -173,10 +96,75 @@
                 });
             });
 
-            // Assuming you have a button or some method to go back to customers view:
+            // Button to go back to customers view
             document.getElementById('backButton').addEventListener('click', function () {
                 document.getElementById('dashboard-container').style.display = 'none'; // hide dashboard content
                 document.getElementById('customers-list').style.display = 'block'; // show customers content
+            });
+        });
+
+        // Edit button click event
+        document.addEventListener('DOMContentLoaded', function () {
+            var editButtons = document.querySelectorAll('.edit-btn');
+            var editableInputs = document.querySelectorAll('.editable input');
+
+            editButtons.forEach(function (editButton) {
+                editButton.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    var parentTile = this.closest('.customer-tile');
+                    var staticInfo = parentTile.querySelector('.static');
+                    var editableInfo = parentTile.querySelector('.editable');
+
+                    // Hide the static info and display the editable fields
+                    staticInfo.style.display = 'none';
+                    editableInfo.style.display = 'block';
+
+                    // Change the edit icon to a save icon
+                    this.classList.remove('fa-edit');
+                    this.classList.add('fa-save');
+                    this.title = 'Save';
+
+                    // On save click, update the static info and switch back
+                    this.onclick = function () {
+                        var editedName = parentTile.querySelector('.edit-name').value;
+                        var editedEmail = parentTile.querySelector('.edit-email').value;
+                        var editedPhone = parentTile.querySelector('.edit-phone').value;
+
+                        parentTile.querySelector('.customer-name').innerText = editedName;
+                        parentTile.querySelector('.customer-email').innerText = editedEmail;
+                        parentTile.querySelector('.customer-phone').innerText = editedPhone;
+
+                        // Toggle displays
+                        staticInfo.style.display = 'block';
+                        editableInfo.style.display = 'none';
+
+                        // Change the save icon back to an edit icon
+                        this.classList.remove('fa-save');
+                        this.classList.add('fa-edit');
+                        this.title = 'Edit';
+                        this.onclick = null; // Clear the save click event
+                    };
+                });
+            });
+              // Stop the propagation for the input elements within .editable
+            editableInputs.forEach(function (input) {
+                input.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                });
+            });
+        });
+
+        // Delete button click event
+        document.addEventListener('DOMContentLoaded', function () {
+            var deleteIcons = document.querySelectorAll('.fa-trash-alt');
+
+            deleteIcons.forEach(function (icon) {
+                icon.addEventListener('click', function () {
+                    var tile = icon.closest('.customer-tile');
+                    if (tile) {
+                        tile.parentNode.removeChild(tile);
+                    }
+                });
             });
         });
     </script>
