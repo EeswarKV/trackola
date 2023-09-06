@@ -1,3 +1,8 @@
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField, FloatField, DateField, validators, SelectField
+from wtforms.validators import DataRequired, Email, EqualTo
+
+
 def build_pie_chart_data(stock_json):
     sector_data = {}
 
@@ -37,3 +42,11 @@ def build_stock_allocation_percentage_data(stock_json):
     allocations = [(stock['symbol'], (stock['marketCap']['value'] / total_market_cap) * 100) for stock in stocks]
     
     return allocations
+
+
+class StockForm(FlaskForm):
+    stock_symbol = StringField('Stock Symbol', validators=[DataRequired()])
+    entry_price = FloatField('Entry Price', validators=[DataRequired()])
+    stock_quantity = FloatField('Quantity', validators=[DataRequired()])
+    entry_date = DateField('Entry Date', validators=[DataRequired()])
+    submit = SubmitField('Add Stock Entry')
