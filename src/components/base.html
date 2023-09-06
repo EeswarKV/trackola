@@ -27,14 +27,14 @@
         {% endif %}-->
         <div class="right-section">
             <div class="customer-name">
-                John Doe
+                {{ user_info.name }}
             </div>
             <div class="profile-dropdown">
                 <button class="profile-settings"><i class="fas fa-user-cog"></i></button>
                 <div class="dropdown-content">
                     <div class="profile-info">
                         <a href="/profile_settings" class="profile-settings-link"><i class="fas fa-user-cog"></i></a>
-                        <span>Koushik Mohan</span>
+                        <span>{{ user_info.name }}</span>
                     </div>
                     <form id="logout-form" action="/logout" method="post">
                         <button type="submit" class="logout-button">Logout</button>
@@ -53,16 +53,14 @@
         <div class="nav-links">
             <a href="/home" class="{{ 'active' if active_page == 'home' else '' }}">Home</a>
             <a href="/dashboard" class="{{ 'active' if active_page == 'dashboard' else '' }}">Dashboard</a>
-            {% if user_info['isFundManager'] == True %}
             <a href="/customers" class="{{ 'active' if active_page == 'customers' else '' }}">Customers</a>
-            {% endif %}
             <a href="/notifications" class="{{ 'active' if active_page == 'notifications' else '' }}">Notifications</a>
         </div>
 
         <!-- Profile Section -->
         <div class="profile-section">
             <img src="/components/header/assets/images/profile1.jpeg" alt="Profile Picture" class="profile-picture">
-            <span>Koushik Mohan</span>
+            <span>{{ user_info.name }}</span>
         </div>
     </div>
 

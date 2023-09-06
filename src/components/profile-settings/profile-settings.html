@@ -10,15 +10,15 @@
         <div class="profile-info">
             <div class="input-container">
                 <label for="username">Username:</label>
-                <input type="text" id="username" name="username" value="{{ user_data.username }}" readonly>
+                <input type="text" id="username" name="username" value="{{ user_info.name }}" readonly>
             </div>
             <div class="input-container">
                 <label for="email">Email:</label>
-                <input type="email" id="email" name="email" value="{{ user_data.email }}" readonly>
+                <input type="email" id="email" name="email" value="{{ user_info.email }}" readonly>
             </div>
             <div class="input-container">
                 <label for="phone">Phone:</label>
-                <input type="text" id="phone" name="phone" value="{{ user_data.phone }}" readonly>
+                <input type="text" id="phone" name="phone" value="{{ user_info.phone_number }}" readonly>
             </div>
             <button id="editButton">Edit</button>
         </div>
@@ -26,15 +26,15 @@
             <form id="profile-settings-form" action="/update_profile" method="post">
                 <div class="input-container">
                     <label for="editedUsername">Username:</label>
-                    <input type="text" id="editedUsername" name="username" value="{{ user_data.username }}">
+                    <input type="text" id="editedUsername" name="username" value="{{ user_info.name }}">
                 </div>
                 <div class="input-container">
                     <label for="editedEmail">Email:</label>
-                    <input type="email" id="editedEmail" name="email" value="{{ user_data.email }}">
+                    <input type="email" id="editedEmail" name="email" value="{{ user_info.email }}">
                 </div>
                 <div class="input-container">
                     <label for="editedPhone">Phone:</label>
-                    <input type="text" id="editedPhone" name="phone" value="{{ user_data.phone }}">
+                    <input type="text" id="editedPhone" name="phone" value="{{ user_info.phone_number }}">
                 </div>
                 <button type="submit" class="save-button">Save</button>
             </form>

@@ -36,12 +36,17 @@
             <div class="customer-info editable" style="display: none;">
                 <input type="text" class="edit-name" value="{{ customer.name }}">
                 <input type="email" class="edit-email" value="{{ customer.email }}">
-                <input type="tel" class="edit-phone" value="{{ customer.phone }}">
+                <input type="tel" class="edit-phone" value="{{ customer.phone_number }}">
             </div>
 
             <div class="customer-header">
                 <i class="fas fa-edit edit-btn" title="Edit"></i>
-                <i class="fas fa-trash-alt" title="Delete" style="margin-left: 10px;"></i>
+                <form method="post" action="/delete_customer">
+                    <input type="hidden" name="customer_id" value="{{ customer.id }}"> <!-- Change to match your actual identifier -->
+                    <button type="submit" class="delete-btn" title="Delete" style="margin-left: 10px;">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </form>
             </div>
         </div>
         {% endfor %}
@@ -71,8 +76,8 @@
                     </div>
 
                     <div class="input-container">
-                        <label for="customerPhone">Phone:</label>
-                        <input type="text" id="customerPhone" name="phone" placeholder="+91 9123456789">
+                        <label for="tel">Phone:</label>
+                        <input type="tel" id="customerPhone" name="tel" placeholder="+91 9123456789">
                     </div>
 
                     <div class="button-container">
@@ -106,8 +111,15 @@
         // Edit button click event
         document.addEventListener('DOMContentLoaded', function () {
             var editButtons = document.querySelectorAll('.edit-btn');
-            var editableInputs = document.querySelectorAll('.editable input');
+            var deleteButtons = document.querySelectorAll('.delete-btn');
 
+            var editableInputs = document.querySelectorAll('.editable input');
+            deleteButtons.forEach(function (deleteButton) {
+                deleteButton.addEventListener('click', function (event) {
+                    event.stopPropagation();
+
+                })
+            })
             editButtons.forEach(function (editButton) {
                 editButton.addEventListener('click', function (event) {
                     event.stopPropagation();
@@ -146,7 +158,7 @@
                     };
                 });
             });
-              // Stop the propagation for the input elements within .editable
+            // Stop the propagation for the input elements within .editable
             editableInputs.forEach(function (input) {
                 input.addEventListener('click', function (event) {
                     event.stopPropagation();
@@ -154,18 +166,19 @@
             });
         });
 
-        // Delete button click event
         document.addEventListener('DOMContentLoaded', function () {
-            var deleteIcons = document.querySelectorAll('.fa-trash-alt');
+            var openModalButton = document.getElementById('openModalButton');
+            var customerModal = document.getElementById('customerModal');
 
-            deleteIcons.forEach(function (icon) {
-                icon.addEventListener('click', function () {
-                    var tile = icon.closest('.customer-tile');
-                    if (tile) {
-                        tile.parentNode.removeChild(tile);
-                    }
-                });
+            openModalButton.addEventListener('click', function () {
+                customerModal.style.display = 'block';
             });
+
+            var cancelButton = document.getElementById('cancelButton');
+            cancelButton.addEventListener('click', function () {
+                customerModal.style.display = 'none';
+            });
+
         });
     </script>
 

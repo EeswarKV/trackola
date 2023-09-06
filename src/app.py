@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, session, request
+from flask import Flask, render_template, redirect, url_for, flash, session, request,jsonify
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo
@@ -7,7 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 import requests
 import pandas as pd
 from functools import wraps
-from src.components.dashboard.dashboard import build_pie_chart_data, build_market_cap_chart_data, build_stock_allocation_percentage_data
+from src.components.dashboard.dashboard import build_pie_chart_data, build_market_cap_chart_data, build_stock_allocation_percentage_data,StockForm
+from src.components.dashboard.constants import list_of_stock_symbols
 from urllib.parse import quote_plus, urlencode
 from dotenv import find_dotenv, load_dotenv
 from authlib.integrations.flask_client import OAuth
@@ -140,22 +141,19 @@ def register():
 @app.route('/logout')
 def logout():
     try:
-        headers = {"Authorization": f"Bearer {singleton.token}", "user":f"{singleton.values}"}
         session.clear()
-        requests.get(
-        'http://localhost:8000/logout', headers=headers)
-        # return redirect(
-        #     "https://"
-        #     + env.get("AUTH0_DOMAIN")
-        #     + "/v2/logout?"
-        #     + urlencode(
-        #         {
-        #             "returnTo": url_for("login", _external=True),
-        #             "client_id": env.get("AUTH0_CLIENT_ID"),
-        #         },
-        #         quote_via=quote_plus,
-        #     )
-        # )
+        return redirect(
+            "https://"
+            + env.get("AUTH0_DOMAIN")
+            + "/v2/logout?"
+            + urlencode(
+                {
+                    "returnTo": url_for("login", _external=True),
+                    "client_id": env.get("AUTH0_CLIENT_ID"),
+                },
+                quote_via=quote_plus,
+            )
+        )
     except Exception as e:
         print(f"Error trying to logout: {e}")
         return None
@@ -184,16 +182,16 @@ def home():
     user_info = requests.get(
         'http://localhost:8000/general_setting', headers=headers).json()
     singleton.userId = user_info['id']
-    print("user_infouser_info",user_info)
     singleton.data = {"userInfo": user_info}
-    return render_template('home/home.html', active_page='home',user_info=user_info)
+    singleton.isFundmanager = singleton.data["userInfo"]["role"] == "Fund_Manager"
+    print("user_infouser_info",singleton.data["userInfo"])
+    return render_template('home/home.html', active_page='home',user_info=singleton.data["userInfo"])
 
 
 @app.route('/dashboard')
 def dashboard():
-    user_info = requests.get(
-        'http://localhost:5001/api/user_info').json()
-    if user_info['isFundManager'] == True:
+    stock_form = StockForm()
+    if singleton.isFundmanager:
         fund_manager_data = requests.get(
         'http://localhost:5001/api/get_fund_manager_data').json()
         portfolio = {
@@ -202,7 +200,7 @@ def dashboard():
         'Portfolio Value': fund_manager_data["portfolioOverview"]["portfolioValue"],
         'Total Funds Available': 80000,
         }
-        return render_template('dashboard/fund-manager-dashboard/dashboard.html', data=fund_manager_data, active_page='dashboard', portfolio=portfolio,user_info=user_info)
+        return render_template('dashboard/fund-manager-dashboard/dashboard.html', data=fund_manager_data, active_page='dashboard', portfolio=portfolio,user_info=singleton.data["userInfo"],stock_codes=list_of_stock_symbols,stock_form=stock_form)
     stock_table_data = requests.get(
         'http://localhost:5001/api/stock_table_data').json()
     sector_data = build_pie_chart_data(stock_table_data)
@@ -236,7 +234,7 @@ def dashboard():
         'Rate of return': stock_table_data["summary"]["totalPL"],
         'Total Funds Available': 80000,
     }
-    return render_template('dashboard/dashboard.html', portfolio=portfolio, active_page='dashboard', stock_table_data=stock_table_data, sector_data=sector_data, market_cap_data=market_cap_data, allocation_percentage_data=allocation_percentage_data, investment_dates=investment_dates, investment_values=investment_values, index_values=index_values,user_info=user_info)
+    return render_template('dashboard/dashboard.html', portfolio=portfolio, active_page='dashboard', stock_table_data=stock_table_data, sector_data=sector_data, market_cap_data=market_cap_data, allocation_percentage_data=allocation_percentage_data, investment_dates=investment_dates, investment_values=investment_values, index_values=index_values,user_info=singleton.data["userInfo"])
 
 @app.route('/create_customer', methods=['POST'])
 def create_customer():
@@ -266,6 +264,15 @@ def create_customer():
 
     response = requests.post(
     'http://localhost:8000/create_customer', headers=headers, data=json_data)
+    return redirect(url_for('customers')) 
+
+@app.route('/delete_customer',)
+def delete_customer():
+    headers = {"Authorization": f"Bearer {singleton.token}", "user": f"{singleton.userId}", "Customer": f"{singleton.values}",  'Content-Type': 'application/json',
+        'Accept': 'application/json'}
+    print("headers to pass", headers)
+    response = requests.delete(
+    'http://localhost:8000/delete_customer', headers=headers)
     return redirect(url_for('customers'))
 
 @app.route('/customers')
@@ -274,8 +281,6 @@ def customers():
     user_data = requests.get(
         'http://localhost:8000/customers', headers=headers).json()
     print("user_data",user_data)
-    user_info = requests.get(
-        'http://localhost:5001/api/user_info').json()
     stock_table_data = requests.get(
         'http://localhost:5001/api/stock_table_data').json()
     sector_data = build_pie_chart_data(stock_table_data)
@@ -309,28 +314,53 @@ def customers():
         'Rate of return': stock_table_data["summary"]["totalPL"],
         'Total Funds Available': 80000,
     }
-    return render_template('customers/customers.html', portfolio=portfolio, active_page='customers', stock_table_data=stock_table_data, sector_data=sector_data, market_cap_data=market_cap_data, allocation_percentage_data=allocation_percentage_data, investment_dates=investment_dates, investment_values=investment_values, index_values=index_values,user_info=user_info,user_data=user_data)
+    return render_template('customers/customers.html', portfolio=portfolio, active_page='customers', stock_table_data=stock_table_data, sector_data=sector_data, market_cap_data=market_cap_data, allocation_percentage_data=allocation_percentage_data, investment_dates=investment_dates, investment_values=investment_values, index_values=index_values,user_info=singleton.data["userInfo"],user_data=user_data)
 
 
 @app.route('/notifications')
 def notifications():
-    user_info = requests.get(
-        'http://localhost:5001/api/user_info').json()
-    return render_template('notifications/notifications.html', active_page='notifications',user_info=user_info)
+    return render_template('notifications/notifications.html', active_page='notifications',user_info=singleton.data["userInfo"])
 
 
-@app.route('/update_profile', methods=['POST'])
-def update_profile():
+@app.route('/profile_settings')
+def profile_settings():
     # Get the form data
     username = request.form.get('username')
     email = request.form.get('email')
     phone = request.form.get('phone')
-
     # Perform update actions here, such as updating user profile data
     # Example: Update the user's profile data in the database
 
     # Redirect back to the profile settings page after updating
-    return redirect(url_for('profile-settings/profile_settings'))
+    return render_template('profile-settings/profile-settings.html',user_info=singleton.data["userInfo"])
+
+@app.route('/add_stock', methods=['POST'])
+def save_stock_entry():
+    headers = {"Authorization": f"Bearer {singleton.token}", "user": f"{singleton.userId}",  'Content-Type': 'application/json',
+        'Accept': 'application/json'}
+    # Get the data from the form
+    exchange = request.form.get('exchange')
+    symbol = request.form.get('symbol')
+    entry_price = request.form.get('entryPrice')
+    quantity = request.form.get('quantity')
+    entry_date = request.form.get('entryDate')
+
+
+    # Perform the API call or other processing here
+    # You can replace this with your actual API call logic
+    # For demonstration, we'll just return the received data as JSON
+    response_data = {
+        'exchange': exchange,
+        'symbol': symbol,
+        'entry_price': entry_price,
+        'quantity': quantity,
+        'entry_date': entry_date,
+    }
+
+    json_data = json.dumps(response_data)
+    response = requests.post(
+    'http://localhost:8000/add_stock', headers=headers, data=json_data)
+    return redirect(url_for('customers')) 
 
 if __name__ == '__main__':
     app.run(port=5000)

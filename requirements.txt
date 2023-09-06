@@ -1,3 +1,9 @@
 Authlib
 python-dotenv
 requests
+flask_wtf
+flask
+flask_bcrypt
+flask_sqlalchemy
+pandas
+email_validator

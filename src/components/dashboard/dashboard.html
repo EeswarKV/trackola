@@ -1,5 +1,5 @@
 {% if not no_base %}
-    {% extends "base.html" %}
+{% extends "base.html" %}
 {% endif %}
 {% block dashboard_css %}
 <link rel="stylesheet" href="/components/dashboard/dashboard.css">
@@ -17,9 +17,36 @@
 
     <div class="main-content">
         <div class="add-stock-btn-container">
-            {% if user_info['isFundManager'] == True %}
             <button id="addStockBtn"><i class="fas fa-plus"></i> Add Stock Entry</button>
-            {% endif %}
+
+            <div id="stockModal" class="custom-modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Add Stock Entry</h2>
+                    <form id="stockEntryForm" method="POST" action="/add_stock">
+                        <label for="exchange">Exchange:</label>
+                        <select id="exchange" name="exchange">
+                            <option value="NSE">NSE</option>
+                            <option value="BSE">BSE</option>
+                        </select><br>
+
+                        <label for="symbol">Symbol:</label>
+                        <input type="text" id="symbol" name="symbol" required><br>
+
+                        <label for="entryPrice">Entry Price:</label>
+                        <input type="text" id="entryPrice" name="entryPrice" required><br>
+
+                        <label for="quantity">Quantity:</label>
+                        <input type="number" id="quantity" name="quantity" required><br>
+
+                        <label for="entryDate">Entry Date:</label>
+                        <input type="date" id="entryDate" name="entryDate" required><br>
+
+                        <button type="submit" id="saveBtn">Save</button>
+                        <button type="button" id="cancelBtn">Cancel</button>
+                    </form>
+                </div>
+            </div>
         </div>
         <div class="dashboard grid-container">
             <!-- Row 1 -->
@@ -132,7 +159,7 @@
                 </div>
             </div>
 
-           
+
 
             <!-- Row 3 -->
             <!-- Since I don't have the exact number of investments, I'll just use placeholders -->
@@ -159,11 +186,6 @@
                 nav.style.transform = 'translateY(0px)';
                 nav.style.display = 'block'
             }
-        });
-        document.getElementById('addStockBtn')?.addEventListener('click', function () {
-            // Example: alert the user
-            alert('Add stock entry functionality is not implemented yet.');
-            // Here, you can add your logic to show a modal or navigate to a different page, etc.
         });
 
         document.querySelector('.notification-summary-tile').addEventListener('click', function () {
@@ -373,6 +395,37 @@
                 pageLength: 50,// Display 50 rows per page
                 order: [[0, 'asc'], [1, 'desc']]
             });
+        });
+
+        // Get the modal element
+        const modal = document.getElementById('stockModal');
+
+        // Get the button that opens the modal
+        const addStockBtn = document.getElementById('addStockBtn');
+
+        // Get the <span> element that closes the modal
+        const closeBtn = document.getElementsByClassName('close')[0];
+
+        // When the user clicks the button, open the modal
+        addStockBtn.addEventListener('click', () => {
+            modal.style.display = 'block';
+        });
+
+        // When the user clicks on <span> (x), close the modal
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        // When the user clicks the Cancel button, close the modal
+        const cancelBtn = document.getElementById('cancelBtn');
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Close the modal if the user clicks outside of it
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
         });
     </script>
 </body>
